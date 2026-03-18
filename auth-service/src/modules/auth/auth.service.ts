@@ -7,7 +7,7 @@ import {
 } from "../../utils/jwt";
 import type { RegisterInput, LoginInput } from "./auth.schemas";
 
-const REFRESH_TOKEN_TTL = 60 * 60 * 24 * 7; // 7 days in seconds
+const REFRESH_TOKEN_TTL = 60 * 60 * 24 * 7;
 
 export class AuthService {
   async register(data: RegisterInput) {
