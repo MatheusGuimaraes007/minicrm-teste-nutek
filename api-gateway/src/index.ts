@@ -20,9 +20,9 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // CORS middleware
 app.use("/*", async (c, next) => {
   const corsMiddleware = cors({
-    origin: [c.env.CORS_ORIGIN, "http://localhost:5173"],
+    origin: [c.env.CORS_ORIGIN, "http://localhost:5173", "https://minicrm-frontend.pages.dev"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization"],
+    allowHeaders: ["Content-Type", "Authorization", "x-user-id", "x-user-email"],
     credentials: true,
   });
   return corsMiddleware(c, next);

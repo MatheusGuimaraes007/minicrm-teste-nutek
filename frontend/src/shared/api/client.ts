@@ -15,7 +15,7 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      const payload = JSON.parse(atob(token.split(".")[1] ?? ""));
       config.headers["x-user-id"] = payload.userId;
       config.headers["x-user-email"] = payload.email;
     } catch {
