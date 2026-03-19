@@ -143,6 +143,17 @@ Acesse `http://localhost:5173`.
 | POST | `/webhook/contacts` | Criar contato | Sim (x-user-id) |
 | DELETE | `/webhook/contacts?contactId=ID` | Deletar contato | Sim (x-user-id) |
 
+## Fluxos n8n
+
+### Criar Contato (POST)
+![Criar Contato](docs/n8n-criar-contato.png)
+
+### Deletar Contato (DELETE)
+![Deletar Contato](docs/n8n-deletar-contato.png)
+
+### Listar Contatos (GET) — com Cache Redis
+![Listar Contatos](docs/n8n-listar-contatos.png)
+
 ## Decisões Técnicas
 
 - **JWT em sessionStorage**: Access token (15min) em sessionStorage para evitar XSS via cookies. Refresh token (7 dias) em localStorage com invalidação no Redis.
