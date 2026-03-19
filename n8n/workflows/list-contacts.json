@@ -17,8 +17,18 @@
     },
     {
       "parameters": {
+        "jsCode": "const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\nconst userId = $input.first().json.headers['x-user-id'];\nif (!userId || !uuidRegex.test(userId)) { throw new Error('userId inv\u00e1lido'); }\nreturn [{ json: { userId } }];"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000010",
+      "name": "Validar userId",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [370, 300]
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, name, email, phone, \"userId\", \"createdAt\", \"updatedAt\" FROM \"Contact\" WHERE \"userId\" = '{{ $json.headers['x-user-id'] }}' ORDER BY \"createdAt\" DESC",
+        "query": "SELECT id, name, email, phone, \"userId\", \"createdAt\", \"updatedAt\" FROM \"Contact\" WHERE \"userId\" = '{{ $json.userId }}' ORDER BY \"createdAt\" DESC",
         "options": {}
       },
       "id": "a1b2c3d4-1111-4000-8000-000000000002",
@@ -49,6 +59,17 @@
   ],
   "connections": {
     "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validar userId",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar userId": {
       "main": [
         [
           {

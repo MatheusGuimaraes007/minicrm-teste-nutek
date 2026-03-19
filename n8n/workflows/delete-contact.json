@@ -17,7 +17,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const contactId = $input.first().json.query.contactId;\nconst userId = $input.first().json.headers['x-user-id'];\nreturn [{ json: { contactId, userId } }];"
+        "jsCode": "const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\nconst contactId = $input.first().json.query.contactId;\nconst userId = $input.first().json.headers['x-user-id'];\nif (!userId || !uuidRegex.test(userId)) { throw new Error('userId inv\u00e1lido'); }\nif (!contactId || !uuidRegex.test(contactId)) { throw new Error('contactId inv\u00e1lido'); }\nreturn [{ json: { contactId, userId } }];"
       },
       "id": "c1b2c3d4-3333-4000-8000-000000000006",
       "name": "Extrair Dados",

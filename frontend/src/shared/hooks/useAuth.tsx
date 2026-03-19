@@ -33,7 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = sessionStorage.getItem("accessToken");
     const storedUser = sessionStorage.getItem("user");
     if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("accessToken");
+      }
     }
     setIsLoading(false);
   }, []);
