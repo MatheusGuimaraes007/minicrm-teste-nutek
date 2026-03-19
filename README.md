@@ -33,7 +33,6 @@ Sistema simplificado de gestão de contatos com autenticação, painel web e aut
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
 - [Node.js 22+](https://nodejs.org/) (para o frontend em dev)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) (para deploy do API Gateway)
 
 ## Setup Local
 
@@ -43,8 +42,9 @@ Sistema simplificado de gestão de contatos com autenticação, painel web e aut
 git clone https://github.com/MatheusGuimaraes007/minicrm-teste-nutek.git
 cd minicrm-teste-nutek
 cp .env.example .env
-# Edite o .env com suas credenciais (ou use os valores padrão para dev)
 ```
+
+O `.env.example` já contém valores padrão para desenvolvimento. Basta copiar.
 
 ### 2. Subir todos os serviços
 
