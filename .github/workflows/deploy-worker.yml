@@ -21,6 +21,10 @@ jobs:
         working-directory: api-gateway
         run: npm ci
 
+      - name: Lint
+        working-directory: api-gateway
+        run: npm run lint
+
       - name: Deploy to Cloudflare Workers
         working-directory: api-gateway
         run: npx wrangler deploy
