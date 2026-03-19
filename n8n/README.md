@@ -6,7 +6,9 @@ Abra o navegador em: **http://n8n.localhost** (ou http://localhost:5678)
 
 Na primeira vez, crie uma conta de owner (usuário administrador).
 
-## 2. Criar Credencial do PostgreSQL
+## 2. Criar Credenciais
+
+### PostgreSQL
 
 1. Vá em **Settings → Credentials → Add Credential**
 2. Busque por **Postgres**
@@ -19,6 +21,17 @@ Na primeira vez, crie uma conta de owner (usuário administrador).
    - **Password:** `admin123`
 4. Clique em **Save**
 
+### Redis (Cache)
+
+1. Vá em **Settings → Credentials → Add Credential**
+2. Busque por **Redis**
+3. Configure:
+   - **Name:** `Redis MiniCRM`
+   - **Host:** `redis`
+   - **Port:** `6379`
+   - **Password:** *(deixe em branco)*
+4. Clique em **Save**
+
 ## 3. Importar Workflows
 
 Para cada arquivo JSON em `n8n/workflows/`:
@@ -26,7 +39,7 @@ Para cada arquivo JSON em `n8n/workflows/`:
 1. Vá em **Workflows → Add Workflow** (ou importe)
 2. Clique no menu **⋮** → **Import from File**
 3. Selecione o arquivo JSON
-4. **Importante:** Em cada nó "Postgres", clique nele e selecione a credencial `Postgres MiniCRM` que você criou
+4. **Importante:** Em cada nó "Postgres", selecione a credencial `Postgres MiniCRM`. Em cada nó "Redis", selecione `Redis MiniCRM`.
 5. Salve o workflow
 
 Repita para os 3 arquivos:
@@ -64,21 +77,31 @@ curl -X DELETE "http://n8n.localhost/webhook/contacts?contactId=ID_DO_CONTATO" \
 
 ## Arquitetura dos Fluxos
 
-### Listar Contatos (GET)
+### Listar Contatos (GET) — com Cache Redis
 ```
-Webhook GET → Postgres SELECT → Responder 200
+Webhook GET → Validar userId → Redis GET (contacts:userId)
+  → Cache Hit? (IF)
+    → ✅ Parse Cache → Responder 200 (cached)
+    → ❌ Postgres SELECT → Responder 200 + Preparar Cache → Redis SET (TTL 5min)
 ```
 
-### Criar Contato (POST)
+### Criar Contato (POST) — com Invalidação de Cache
 ```
 Webhook POST → Validar (nome obrigatório)
-  → ✅ Postgres INSERT → Responder 201
-  → ❌ Responder 400
+  → Postgres INSERT → Responder 201
+                    → Redis DEL (contacts:userId)
 ```
 
-### Deletar Contato (DELETE)
+### Deletar Contato (DELETE) — com Invalidação de Cache
 ```
-Webhook DELETE → Postgres DELETE (com verificação de ownership)
-  → ✅ Deletou → Responder 204
-  → ❌ Não encontrado → Responder 404
+Webhook DELETE → Validar UUIDs
+  → Postgres DELETE → Responder 204
+                   → Redis DEL (contacts:userId)
 ```
+
+### Cache Redis (Diferencial)
+
+- **Chave:** `contacts:${userId}` — uma entrada por usuário
+- **TTL:** 300 segundos (5 minutos)
+- **Leitura:** Ao listar contatos, verifica o cache antes de consultar o banco
+- **Invalidação:** Ao criar ou deletar um contato, o cache do usuário é removido automaticamente

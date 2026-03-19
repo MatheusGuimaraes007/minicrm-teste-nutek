@@ -55,6 +55,23 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=contacts:{{ $('Validar e Extrair').first().json.userId }}"
+      },
+      "id": "b1b2c3d4-2222-4000-8000-000000000005",
+      "name": "Invalidar Cache",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [960, 480],
+      "credentials": {
+        "redis": {
+          "id": "CONFIGURE_ME_REDIS",
+          "name": "Redis MiniCRM"
+        }
+      }
     }
   ],
   "connections": {
@@ -85,6 +102,11 @@
         [
           {
             "node": "Responder 201",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Invalidar Cache",
             "type": "main",
             "index": 0
           }

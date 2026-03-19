@@ -27,15 +27,73 @@
     },
     {
       "parameters": {
+        "operation": "get",
+        "propertyName": "value",
+        "key": "=contacts:{{ $json.userId }}"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000011",
+      "name": "Redis GET",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [540, 300],
+      "credentials": {
+        "redis": {
+          "id": "CONFIGURE_ME_REDIS",
+          "name": "Redis MiniCRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.value }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000012",
+      "name": "Cache Hit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const value = $input.first().json.value;\nconst contacts = JSON.parse(value);\nreturn contacts.map(c => ({ json: c }));"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000013",
+      "name": "Parse Cache",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000014",
+      "name": "Responder Cache",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1160, 200]
+    },
+    {
+      "parameters": {
         "operation": "executeQuery",
-        "query": "SELECT id, name, email, phone, \"userId\", \"createdAt\", \"updatedAt\" FROM \"Contact\" WHERE \"userId\" = '{{ $json.userId }}' ORDER BY \"createdAt\" DESC",
+        "query": "SELECT id, name, email, phone, \"userId\", \"createdAt\", \"updatedAt\" FROM \"Contact\" WHERE \"userId\" = '{{ $('Validar userId').first().json.userId }}' ORDER BY \"createdAt\" DESC",
         "options": {}
       },
       "id": "a1b2c3d4-1111-4000-8000-000000000002",
       "name": "Buscar Contatos",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.5,
-      "position": [480, 300],
+      "position": [940, 420],
       "credentials": {
         "postgres": {
           "id": "CONFIGURE_ME",
@@ -51,10 +109,40 @@
         }
       },
       "id": "a1b2c3d4-1111-4000-8000-000000000003",
-      "name": "Responder",
+      "name": "Responder DB",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [700, 300]
+      "position": [1160, 360]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst userId = $('Validar userId').first().json.userId;\nconst contacts = items.map(i => i.json);\nreturn [{ json: { key: 'contacts:' + userId, value: JSON.stringify(contacts) } }];"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000015",
+      "name": "Preparar Cache",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 500]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json.key }}",
+        "value": "={{ $json.value }}",
+        "expire": true,
+        "ttl": 300
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000016",
+      "name": "Redis SET",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1380, 500],
+      "credentials": {
+        "redis": {
+          "id": "CONFIGURE_ME_REDIS",
+          "name": "Redis MiniCRM"
+        }
+      }
     }
   ],
   "connections": {
@@ -73,7 +161,47 @@
       "main": [
         [
           {
+            "node": "Redis GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis GET": {
+      "main": [
+        [
+          {
+            "node": "Cache Hit?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache Hit?": {
+      "main": [
+        [
+          {
+            "node": "Parse Cache",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Buscar Contatos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Cache": {
+      "main": [
+        [
+          {
+            "node": "Responder Cache",
             "type": "main",
             "index": 0
           }
@@ -84,7 +212,23 @@
       "main": [
         [
           {
-            "node": "Responder",
+            "node": "Responder DB",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar Cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Cache": {
+      "main": [
+        [
+          {
+            "node": "Redis SET",
             "type": "main",
             "index": 0
           }
