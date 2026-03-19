@@ -1,0 +1,100 @@
+{
+  "name": "MiniCRM - Criar Contato",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "contacts",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b1b2c3d4-2222-4000-8000-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "create-contact-wh"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst userId = $input.first().json.headers['x-user-id'];\n\nif (!body || !body.name || body.name.trim() === '') {\n  throw new Error('Campo nome é obrigatório');\n}\n\nreturn [{ json: { name: body.name, email: body.email || '', phone: body.phone || '', userId } }];"
+      },
+      "id": "b1b2c3d4-2222-4000-8000-000000000010",
+      "name": "Validar e Extrair",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO \"Contact\" (id, name, email, phone, \"userId\", \"createdAt\", \"updatedAt\") VALUES (gen_random_uuid(), '{{ $json.name }}', '{{ $json.email }}', '{{ $json.phone }}', '{{ $json.userId }}', NOW(), NOW()) RETURNING *",
+        "options": {}
+      },
+      "id": "b1b2c3d4-2222-4000-8000-000000000003",
+      "name": "Inserir Contato",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [720, 300],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_ME",
+          "name": "Postgres MiniCRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": 201
+        }
+      },
+      "id": "b1b2c3d4-2222-4000-8000-000000000004",
+      "name": "Responder 201",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validar e Extrair",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar e Extrair": {
+      "main": [
+        [
+          {
+            "node": "Inserir Contato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inserir Contato": {
+      "main": [
+        [
+          {
+            "node": "Responder 201",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

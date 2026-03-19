@@ -1,0 +1,29 @@
+name: Deploy API Gateway (Cloudflare Worker)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api-gateway/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy Worker
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        working-directory: api-gateway
+        run: npm ci
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: api-gateway
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}

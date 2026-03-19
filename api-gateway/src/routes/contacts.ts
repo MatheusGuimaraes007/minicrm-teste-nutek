@@ -52,7 +52,7 @@ contacts.post("/", async (c) => {
 contacts.delete("/:id", async (c) => {
   const userId = c.get("userId");
   const contactId = c.req.param("id");
-  const targetUrl = `${c.env.N8N_WEBHOOK_URL}/webhook/contacts/${contactId}`;
+  const targetUrl = `${c.env.N8N_WEBHOOK_URL}/webhook/contacts?contactId=${contactId}`;
 
   const response = await fetch(targetUrl, {
     method: "DELETE",

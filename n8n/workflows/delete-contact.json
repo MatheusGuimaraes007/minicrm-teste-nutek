@@ -1,0 +1,100 @@
+{
+  "name": "MiniCRM - Deletar Contato",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "contacts",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c1b2c3d4-3333-4000-8000-000000000001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "delete-contact-wh"
+    },
+    {
+      "parameters": {
+        "jsCode": "const contactId = $input.first().json.query.contactId;\nconst userId = $input.first().json.headers['x-user-id'];\nreturn [{ json: { contactId, userId } }];"
+      },
+      "id": "c1b2c3d4-3333-4000-8000-000000000006",
+      "name": "Extrair Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DELETE FROM \"Contact\" WHERE id = '{{ $json.contactId }}' AND \"userId\" = '{{ $json.userId }}'",
+        "options": {}
+      },
+      "id": "c1b2c3d4-3333-4000-8000-000000000002",
+      "name": "Deletar Contato",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [700, 300],
+      "credentials": {
+        "postgres": {
+          "id": "CONFIGURE_ME",
+          "name": "Postgres MiniCRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 204
+        }
+      },
+      "id": "c1b2c3d4-3333-4000-8000-000000000004",
+      "name": "Responder 204",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [940, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extrair Dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extrair Dados": {
+      "main": [
+        [
+          {
+            "node": "Deletar Contato",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deletar Contato": {
+      "main": [
+        [
+          {
+            "node": "Responder 204",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
