@@ -64,10 +64,11 @@ As migrations do Prisma rodam automaticamente na inicialização do auth-service
 ### 3. Configurar n8n
 
 1. Acesse `http://n8n.localhost` e crie a conta de owner
-2. Vá em **Credentials → Add → Postgres** e configure:
-   - Host: `postgres` | Database: `minicrm_db` | User: `admin` | Password: `admin123` | Port: `5432`
+2. Crie as credenciais:
+   - **Postgres**: Credentials → Add → Postgres → Host: `postgres` | Database: `minicrm_db` | User: `admin` | Password: `admin123` | Port: `5432`
+   - **Redis**: Credentials → Add → Redis → Host: `redis` | Port: `6379` (sem senha)
 3. Importe os 3 workflows de `n8n/workflows/` (menu ⋮ → Import from File)
-4. Em cada workflow, conecte os nós Postgres à credencial criada
+4. Em cada workflow, conecte os nós Postgres à credencial `Postgres MiniCRM` e os nós Redis à credencial `Redis MiniCRM`
 5. **Ative** cada workflow (toggle no canto superior direito)
 
 Detalhes em [`n8n/README.md`](n8n/README.md).
@@ -95,7 +96,8 @@ Acesse `http://localhost:5173`.
 
 | Serviço | URL |
 |---------|-----|
-| API Gateway | https://minicrm-api-gateway.minicrm-nutek-matheus.workers.dev |
+| API Gateway (Worker) | https://minicrm-api-gateway.minicrm-nutek-matheus.workers.dev |
+| Frontend (Pages) | https://minicrm-frontend.pages.dev |
 
 ## Estrutura do Projeto
 
@@ -148,3 +150,6 @@ Acesse `http://localhost:5173`.
 - **n8n para CRUD**: Os contatos são gerenciados via webhooks do n8n com queries SQL diretas no PostgreSQL, conforme especificado.
 - **Banco separado para n8n**: O n8n usa `n8n_db` enquanto a aplicação usa `minicrm_db`, evitando conflitos de tabelas internas.
 - **Prisma ORM**: Migrations versionadas no repositório para reprodutibilidade.
+- **Cache Redis nos fluxos n8n**: Ao listar contatos, o workflow verifica o cache Redis (chave `contacts:${userId}`, TTL 5min) antes de consultar o Postgres. Ao criar ou deletar, o cache do usuário é invalidado automaticamente via `Redis DEL`.
+- **Segurança SQL no n8n**: Todas as queries nos workflows validam UUIDs via regex e sanitizam strings contra SQL injection antes da interpolação.
+- **CI/CD com GitHub Actions**: Deploy automático do Worker e do Frontend na Cloudflare via workflows separados, acionados por push na branch `main`.
