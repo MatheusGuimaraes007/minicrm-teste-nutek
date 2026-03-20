@@ -9,6 +9,6 @@ CORS_ORIGIN = "http://localhost:5173"
 
 # Production environment
 [env.production]
-vars = { CORS_ORIGIN = "https://minicrm.pages.dev" }
+vars = { CORS_ORIGIN = "https://minicrm-frontend.pages.dev" }
 
 # JWT_SECRET is set via `wrangler secret put JWT_SECRET`
